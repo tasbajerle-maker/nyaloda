@@ -59,10 +59,7 @@ export const createTask = (taskData) => request('/tasks', 'POST', taskData);
 export const deleteTask = (taskId) => request(`/tasks/${taskId}`, 'DELETE');
 export const logTask = (taskData) => request('/tasks/log', 'POST', taskData);
 
-// ----- INNEN JÖNNEK A JAVÍTOTT FUNKCIÓK -----
-
-// Bevételezés vonalkóddal
+// Stock Movement Functions
 export const receiveProductByBarcode = (data) => request('/products/receive-by-barcode', 'POST', data);
-
-// Selejtezés
 export const wasteProduct = (data) => request('/products/waste', 'POST', data);
+export const adjustStock = (data) => request('/products/adjust-stock', 'POST', data);

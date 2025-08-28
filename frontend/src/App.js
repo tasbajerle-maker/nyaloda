@@ -18,7 +18,8 @@ import DailyChecklistPage from './components/DailyChecklistPage';
 import ReportsPage from './components/ReportsPage';
 import ProductDetailPage from './components/ProductDetailPage';
 import Bevetelezes from './components/Bevetelezes';
-import Selejtezes from './components/Selejtezes'; // <-- 1. ÚJ IMPORT
+import Selejtezes from './components/Selejtezes';
+import StockAdjustment from './components/StockAdjustment'; // <-- ÚJ IMPORT
 
 function App() {
     const [user, setUser] = useState(null);
@@ -177,16 +178,26 @@ function App() {
         }
     };
 
-    // <-- 2. ÚJ FUNKCIÓ A SELEJTEZÉSHEZ -->
     const handleWasteProduct = async (wasteData) => {
         try {
-            await api.wasteProduct(wasteData); // wasteData = { productId, quantity, notes }
+            await api.wasteProduct(wasteData);
             alert('Selejtezés sikeresen rögzítve.');
-            await fetchData(); // Adatok frissítése
+            await fetchData();
         } catch (error) {
             alert(`Hiba a selejtezéskor: ${error.message}`);
             console.error(error);
-            throw error; // Hibát dobunk tovább, hogy a komponens is tudjon róla
+            throw error;
+        }
+    };
+    
+    const handleStockAdjustment = async (adjustmentData) => {
+        try {
+            await api.adjustStock(adjustmentData);
+            alert('Készlet sikeresen módosítva.');
+            await fetchData();
+        } catch (error) {
+            alert(`Hiba a készlet módosításakor: ${error.message}`);
+            throw error;
         }
     };
 
@@ -199,9 +210,11 @@ function App() {
                         <button onClick={() => handleNavigate('bevetelezes')} style={{ padding: '10px', fontSize: '16px' }}>
                             Új Bevételezés (Vonalkódos)
                         </button>
-                        {/* <-- 3. ÚJ GOMB A SELEJTEZÉSHEZ --> */}
                         <button onClick={() => handleNavigate('waste')} style={{ padding: '10px', fontSize: '16px' }}>
                             Új Selejtezés
+                        </button>
+                        <button onClick={() => handleNavigate('adjust-stock')} style={{ padding: '10px', fontSize: '16px' }}>
+                            Kézi Készletmódosítás
                         </button>
                         <ManagerDashboardView 
                             allOrders={allOrders}
@@ -255,11 +268,17 @@ function App() {
                             onNavigate={handleNavigate} 
                         />;
             }
-            // <-- 4. ÚJ "OLDAL" A SELEJTEZÉSHEZ -->
             case 'waste': {
                 return <Selejtezes 
                             centralStock={centralStock}
                             onSubmit={handleWasteProduct} 
+                            onNavigate={handleNavigate} 
+                        />;
+            }
+            case 'adjust-stock': {
+                return <StockAdjustment 
+                            centralStock={centralStock}
+                            onSubmit={handleStockAdjustment} 
                             onNavigate={handleNavigate} 
                         />;
             }
