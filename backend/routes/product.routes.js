@@ -1,11 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const productController = require('../controllers/product.controller');
-const { authorizeRoles } = require('../middleware/auth.middleware');
+const { authenticateToken, authorizeRoles } = require('../middleware/auth.middleware');
 
-// Minden termék-művelet csak 'manager' szerepkörrel érhető el
-router.post('/', authorizeRoles('manager'), productController.createProduct);
-router.patch('/:id', authorizeRoles('manager'), productController.updateProduct);
-router.delete('/:id', authorizeRoles('manager'), productController.deleteProduct);
+// Először az 'authenticateToken' fut le, ami beteszi a felhasználót a req.user-be.
+// Utána az 'authorizeRoles' ellenőrzi a jogosultságot.
+router.post('/', authenticateToken, authorizeRoles('manager'), productController.createProduct);
+router.patch('/:id', authenticateToken, authorizeRoles('manager'), productController.updateProduct);
+router.delete('/:id', authenticateToken, authorizeRoles('manager'), productController.deleteProduct);
+router.post('/receive-by-barcode', authenticateToken, authorizeRoles('manager'), productController.receiveProductByBarcode);
+
+// Ez az a sor, ami valószínűleg hiányzott vagy hibás volt:
+router.post('/waste', authenticateToken, authorizeRoles('manager'), productController.wasteProduct);
 
 module.exports = router;

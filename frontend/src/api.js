@@ -14,7 +14,6 @@ async function request(endpoint, method = 'GET', body = null) {
     }
     const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
     
-    // Kezeljük azt az esetet, ha a válasz nem JSON
     const contentType = response.headers.get("content-type");
     if (contentType && contentType.indexOf("application/json") !== -1) {
         const data = await response.json();
@@ -59,3 +58,11 @@ export const deleteUser = (userId) => request(`/users/${userId}`, 'DELETE');
 export const createTask = (taskData) => request('/tasks', 'POST', taskData);
 export const deleteTask = (taskId) => request(`/tasks/${taskId}`, 'DELETE');
 export const logTask = (taskData) => request('/tasks/log', 'POST', taskData);
+
+// ----- INNEN JÖNNEK A JAVÍTOTT FUNKCIÓK -----
+
+// Bevételezés vonalkóddal
+export const receiveProductByBarcode = (data) => request('/products/receive-by-barcode', 'POST', data);
+
+// Selejtezés
+export const wasteProduct = (data) => request('/products/waste', 'POST', data);
