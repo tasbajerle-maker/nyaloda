@@ -1,11 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const stockController = require('../controllers/stock.controller');
-const { authorizeRoles } = require('../middleware/auth.middleware');
+const { authenticateToken } = require('../middleware/auth.middleware');
 
-// A raktárműveletekhez 'manager' vagy 'employee' szerepkör kell
-router.post('/receive/:orderId', authorizeRoles('manager', 'employee'), stockController.receiveStock);
-router.post('/move-to-counter', authorizeRoles('manager', 'employee'), stockController.moveToCounter);
-router.post('/log-usage', authorizeRoles('manager', 'employee'), stockController.logUsage);
+// Végleges útvonalak
+router.post('/receive/:orderId', authenticateToken, stockController.receiveStock);
+router.post('/move-to-counter', authenticateToken, stockController.moveToCounter);
+router.post('/log-usage', authenticateToken, stockController.logUsage);
+router.post('/log-raw-material-usage', authenticateToken, stockController.logRawMaterialUsage);
+router.post('/use-from-counter', authenticateToken, stockController.useFromCounter);
+router.post('/move-from-counter-to-back', authenticateToken, stockController.moveFromCounterToBack);
 
 module.exports = router;

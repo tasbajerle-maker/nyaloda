@@ -1,13 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const taskController = require('../controllers/task.controller');
-const { authorizeRoles } = require('../middleware/auth.middleware');
+const { authenticateToken, authorizeRoles } = require('../middleware/auth.middleware');
 
-// Feladat létrehozása és törlése csak 'manager'
-router.post('/', authorizeRoles('manager'), taskController.createTask);
-router.delete('/:id', authorizeRoles('manager'), taskController.deleteTask);
+// Új feladat létrehozása (csak manager)
+router.post('/', authenticateToken, authorizeRoles('manager'), taskController.createTask);
 
-// Feladat elvégzésének naplózása 'manager' és 'employee' által is
-router.post('/log', authorizeRoles('manager', 'employee'), taskController.logTask);
+// Feladat törlése (csak manager)
+router.delete('/:id', authenticateToken, authorizeRoles('manager'), taskController.deleteTask);
+
+// Feladat naplózása (bármely bejelentkezett felhasználó)
+router.post('/log', authenticateToken, taskController.logTask);
 
 module.exports = router;

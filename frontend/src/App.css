@@ -1,58 +1,128 @@
-body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    background-color: #f4f7f6;
-    margin: 0;
-    padding: 0;
-    color: #333;
+/* --- ALAP BEÁLLÍTÁSOK ÉS VILÁGOS HÁTTÉR --- */
+.App {
+  text-align: center;
+  background-color: #f0f2f5;
+  min-height: 100vh;
+  color: #1c1e21;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
-.login-container {
-    max-width: 400px;
-    margin: 100px auto;
-    padding: 2rem;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background-color: #fff;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    text-align: center;
+.app-header {
+  padding: 10px 20px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #ddd;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #1c1e21;
 }
 
-.input-group {
-    margin-bottom: 1rem;
-    text-align: left;
+/* --- LOGIN STÍLUSOK --- */
+.login-container { max-width: 400px; margin: 100px auto; padding: 2rem; text-align: center; background: #ffffff; border-radius: 16px; border: 1px solid #ddd; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); }
+.input-group { margin-bottom: 1rem; text-align: left; }
+.input-group label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
+.input-group input { width: 100%; padding: 0.75rem; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
+.error-message { color: #d9534f; margin-bottom: 1rem; }
+button { cursor: pointer; background-color: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-size: 1rem; transition: background-color 0.2s; }
+button:hover { background-color: #0056b3; }
+
+/* --- OPÁLOS KÁRTYA STÍLUS --- */
+.glass-card {
+  background: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border-radius: 16px !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1) !important;
+  color: #1c1e21 !important;
+}
+.glass-card .MuiTypography-colorTextSecondary { color: #555 !important; }
+.glass-card .MuiButton-root { color: #007bff !important; }
+
+/* --- PARTNER OLDAL TÉMÁJA --- */
+.partner-theme .MuiAppBar-root { background: linear-gradient(90deg, #4f46e5 0%, #06b6d4 100%) !important; color: white !important; }
+.partner-theme .MuiAppBar-root .MuiButton-root { color: white !important; }
+
+/* --- VONALKÓDOLVASÓ JAVÍTÁS --- */
+.scanner-container video { width: 100%; height: auto; display: block; }
+
+/* --- RENDELÉSKEZELŐ OLDAL STÍLUSAI --- */
+.order-details-list { padding-left: 16px !important; border-top: 1px solid rgba(0, 0, 0, 0.1); margin-top: 8px; padding-top: 8px; }
+
+/* --- ÚJ: KÉSZLETOLDAL STÍLUSAI --- */
+.stock-page-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  padding: 1rem;
+}
+.stock-column {
+  background: rgba(0, 0, 0, 0.03);
+  padding: 1rem;
+  border-radius: 16px;
+}
+.stock-card {
+  transition: transform 0.2s ease-in-out !important;
+}
+.stock-card:hover {
+  transform: translateY(-5px);
+}
+.stock-card-sufficient { border-left: 5px solid #4caf50 !important; } /* Zöld */
+.stock-card-low { border-left: 5px solid #ff9800 !important; } /* Narancs */
+.stock-card-out { border-left: 5px solid #9e9e9e !important; opacity: 0.7; } /* Szürke */
+
+/* --- EGYÉB STÍLUSOK --- */
+.page-container { display: flex; flex-direction: column; min-height: 100vh; }
+.user-list, .task-list { list-style: none; padding: 0; text-align: left; }
+.user-list li, .task-list li { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #eee; }
+
+/* ... a meglévő stílusok ... */
+
+/* --- ÚJ: JELENTÉSEK OLDAL STÍLUSAI --- */
+.stat-card {
+  background: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  border-radius: 16px !important;
+  padding: 16px;
+  text-align: center;
+  color: #1c1e21 !important;
 }
 
-.input-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: bold;
+.reports-table-container {
+  background: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border-radius: 16px !important;
 }
 
-.input-group input {
-    width: 100%;
-    padding: 0.75rem;
-    box-sizing: border-box;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 1rem;
+/* ... a többi meglévő stílusod ... */
+
+/* --- NAPI ÜZENET SZÖVEGBUBORÉK (VILÁGOS TÉMÁHOZ IGAZÍTVA) --- */
+.daily-message-bubble {
+  margin-top: 3rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.8); /* Világosabb buborék */
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  font-style: italic;
+  position: relative;
+  color: #333; /* JAVÍTVA: Sötét szövegszín */
 }
 
-.error-message {
-    color: #d9534f;
-    margin-bottom: 1rem;
-}
-
-button {
-    cursor: pointer;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 5px;
-    font-size: 1rem;
-    transition: background-color 0.2s; /* <<< ITT VOLT A HIBA */
-}
-
-button:hover {
-    background-color: #0056b3;
+.daily-message-bubble::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 0 10px 10px 10px;
+  border-style: solid;
+  border-color: transparent transparent rgba(255, 255, 255, 0.8) transparent; /* A buborék színéhez igazítva */
 }

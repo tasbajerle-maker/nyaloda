@@ -1,24 +1,15 @@
 const Task = require('../models/task.model');
 const TaskLog = require('../models/taskLog.model');
-const User = require('../models/user.model');
 
-// Helper function to convert Mongoose docs to plain objects with an 'id' field
-const toJSONWithId = (doc) => {
-    if (!doc) return null;
-    const jsonObj = doc.toJSON({ virtuals: true });
-    jsonObj.id = jsonObj._id.toString();
-    delete jsonObj._id;
-    delete jsonObj.__v;
-    return jsonObj;
-};
+// A toJSONWithId helperre itt nincs szükség, mert a User modellt már nem használjuk direktben
 
 exports.createTask = async (req, res) => {
     try {
         const { text } = req.body;
-        const user = await User.findById(req.user.userId);
-        const task = new Task({ text, createdBy: user.email });
+        // Most már közvetlenül a req.user-ből olvassuk az emailt
+        const task = new Task({ text, createdBy: req.user.email });
         await task.save();
-        res.status(201).json(toJSONWithId(task));
+        res.status(201).json(task);
     } catch (e) {
         res.status(400).json({ message: e.message });
     }
@@ -39,19 +30,21 @@ exports.deleteTask = async (req, res) => {
 exports.logTask = async (req, res) => {
     try {
         const { taskId, storeId, isCompleted } = req.body;
-        const user = await User.findById(req.user.userId);
+        // A user objektumot már a middleware betette a req.user-be, nem kell újra lekérdezni.
+        const user = req.user;
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
         const existingLog = await TaskLog.findOne({
             taskId,
-            userId: user.email,
+            // A user ID-t és emailt is a req.user-ből vesszük
+            userId: user._id, 
             storeId,
             completionDate: { $gte: today }
         });
 
         if (isCompleted && !existingLog) {
-            const newLog = new TaskLog({ taskId, userId: user.email, storeId });
+            const newLog = new TaskLog({ taskId, userId: user._id, storeId });
             await newLog.save();
         } else if (!isCompleted && existingLog) {
             await TaskLog.findByIdAndDelete(existingLog._id);
@@ -59,6 +52,8 @@ exports.logTask = async (req, res) => {
         
         res.status(200).json({ message: 'Napló frissítve.' });
     } catch (e) {
+        // A console.error segít a hibakeresésben
+        console.error("Hiba a feladat naplózásakor:", e);
         res.status(500).json({ message: e.message });
     }
 };

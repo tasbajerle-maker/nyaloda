@@ -1,30 +1,37 @@
 import React, { useState, useRef } from 'react';
-import { useZxing } from 'react-zxing'; // <-- A helyes import, a Hook-ot kérjük el
+import { useZxing } from 'react-zxing';
 
 function Bevetelezes({ onSubmit, onNavigate }) {
     const [scannedCode, setScannedCode] = useState('');
     const [quantity, setQuantity] = useState(1);
     const [feedback, setFeedback] = useState({ message: '', error: false });
     const [isScanning, setIsScanning] = useState(true);
+    const [cameraError, setCameraError] = useState(''); // Új állapot a kamera hibájának
 
-    // Létrehozunk egy hivatkozást (ref), amit a videó elemre teszünk.
-    // Így tudja majd a Hook, hogy melyik elemet kell használnia.
     const ref = useRef(null);
 
-    // Itt használjuk a Hook-ot. Megadjuk neki a videó elemünket (ref),
-    // és azt, hogy mit csináljon, ha találatot kap (onResult).
     useZxing({
         ref,
-        paused: !isScanning, // A szkennelés szünetel, ha nem akarjuk
+        paused: !isScanning,
+        // Kifejezetten a hátlapi kamerát kérjük
+        constraints: { video: { facingMode: 'environment' } },
         onResult(result) {
             if (isScanning) {
                 const codeText = result.getText();
-                console.log('Sikeres beolvasás:', codeText);
                 setScannedCode(codeText);
-                setIsScanning(false); // Leállítjuk a szkennelést a találat után
+                setIsScanning(false);
                 setFeedback({ message: `Kód beolvasva: ${codeText}. Add meg a mennyiséget!`, error: false });
             }
         },
+        // Ha hiba történik a kamera indításakor
+        onError(error) {
+            console.error("Kamera hiba:", error);
+            if (error.name === 'NotAllowedError') {
+                setCameraError("Nincs engedély a kamera használatához. Kérlek, engedélyezd a böngésző beállításaiban.");
+            } else {
+                setCameraError("Kamera nem elérhető vagy hiba történt.");
+            }
+        }
     });
 
     const handleSubmit = async () => {
@@ -37,6 +44,7 @@ function Bevetelezes({ onSubmit, onNavigate }) {
         setScannedCode('');
         setQuantity(1);
         setIsScanning(true);
+        setCameraError(''); // Hiba törlése
         setFeedback({ message: 'Sikeres bevételezés! Olvashatod a következő kódot.', error: false });
     };
     
@@ -44,6 +52,7 @@ function Bevetelezes({ onSubmit, onNavigate }) {
         setScannedCode('');
         setQuantity(1);
         setIsScanning(true);
+        setCameraError(''); // Hiba törlése
         setFeedback({ message: '', error: false });
     };
 
@@ -51,12 +60,11 @@ function Bevetelezes({ onSubmit, onNavigate }) {
         <div className="bevetelezes-container">
             <h2>Termék Bevételezés</h2>
             
-            {/* Csak akkor mutatjuk a videót, ha szkennelünk */}
             {isScanning && (
                 <div className="scanner-container">
-                    {/* Ez a videó elem, amit a Hook irányít. A böngésző ezt fogja kameraként használni. */}
                     <video ref={ref} style={{ maxWidth: '100%' }}/>
-                    <p>Irányítsd a kamerát a vonalkódra...</p>
+                    {cameraError && <p className="feedback-error" style={{ padding: '1rem' }}>{cameraError}</p>}
+                    {!cameraError && <p>Irányítsd a kamerát a vonalkódra...</p>}
                 </div>
             )}
             

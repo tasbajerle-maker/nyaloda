@@ -20,31 +20,29 @@ const ProductAdmin = ({ centralStock, onNavigate, onCreateProduct, onToggleVisib
     const [name, setName] = useState('');
     const [quantity, setQuantity] = useState(10);
     const [unit, setUnit] = useState('tégely');
-    const [type, setType] = useState('finished');
+    const [inventoryType, setInventoryType] = useState('FINISHED_GOOD');
 
     const handleCreate = (e) => {
         e.preventDefault();
-        onCreateProduct({ name, quantity: Number(quantity), unit, type });
+        onCreateProduct({ name, quantity: Number(quantity), unit, inventoryType });
         setName('');
         setQuantity(10);
     };
     
-    const finishedProducts = centralStock.filter(p => p.type === 'finished');
-    const rawMaterials = centralStock.filter(p => p.type === 'raw');
+    const finishedProducts = centralStock.filter(p => p.inventoryType === 'FINISHED_GOOD');
+    const rawMaterials = centralStock.filter(p => p.inventoryType === 'RAW_MATERIAL');
 
     return (
         <Box>
-            <Card sx={{ mb: 4 }}>
+            <Card sx={{ mb: 4, background: 'rgba(255,255,255,0.05)' }}>
                 <CardContent>
-                    <Typography variant="h6" component="h3" gutterBottom>
-                        Új Termék Felvitele
-                    </Typography>
+                    <Typography variant="h6" component="h3" gutterBottom>Új Termék Felvitele</Typography>
                     <form onSubmit={handleCreate}>
                         <Grid container spacing={2} alignItems="center">
                             <Grid item xs={12} sm={4}><TextField fullWidth size="small" label="Termék neve" value={name} onChange={e => setName(e.target.value)} required /></Grid>
                             <Grid item xs={6} sm={2}><TextField fullWidth size="small" label="Mennyiség" type="number" value={quantity} onChange={e => setQuantity(e.target.value)} /></Grid>
                             <Grid item xs={6} sm={2}><FormControl fullWidth size="small"><InputLabel>Egység</InputLabel><Select value={unit} label="Egység" onChange={e => setUnit(e.target.value)}><MenuItem value="tégely">tégely</MenuItem><MenuItem value="kg">kg</MenuItem><MenuItem value="db">db</MenuItem></Select></FormControl></Grid>
-                            <Grid item xs={6} sm={2}><FormControl fullWidth size="small"><InputLabel>Típus</InputLabel><Select value={type} label="Típus" onChange={e => setType(e.target.value)}><MenuItem value="finished">Késztermék</MenuItem><MenuItem value="raw">Alapanyag</MenuItem></Select></FormControl></Grid>
+                            <Grid item xs={6} sm={2}><FormControl fullWidth size="small"><InputLabel>Kategória</InputLabel><Select value={inventoryType} label="Kategória" onChange={e => setInventoryType(e.target.value)}><MenuItem value="FINISHED_GOOD">Késztermék</MenuItem><MenuItem value="RAW_MATERIAL">Alapanyag</MenuItem></Select></FormControl></Grid>
                             <Grid item xs={12} sm={2}><Button type="submit" variant="contained" fullWidth>Létrehozás</Button></Grid>
                         </Grid>
                     </form>
@@ -55,7 +53,15 @@ const ProductAdmin = ({ centralStock, onNavigate, onCreateProduct, onToggleVisib
             <Grid container spacing={3}>
                 {finishedProducts.map(p => (
                     <Grid item key={p.id} xs={12} sm={6} md={4} lg={3}>
-                        <Card><CardContent><Typography variant="h6">{p.name}</Typography><Typography color="text.secondary">{p.quantity} {p.unit}</Typography></CardContent><CardActions><Button size="small" onClick={() => onNavigate('productDetail', p.id)}>Szerkesztés / Adatlap</Button></CardActions></Card>
+                        <Card className="glass-card">
+                            <CardContent>
+                                <Typography variant="h6">{p.name}</Typography>
+                                <Typography className="MuiTypography-colorTextSecondary">{p.quantity} {p.unit}</Typography>
+                            </CardContent>
+                            <CardActions>
+                                <Button size="small" onClick={() => onNavigate('productDetail', p.id)}>Szerkesztés / Adatlap</Button>
+                            </CardActions>
+                        </Card>
                     </Grid>
                 ))}
             </Grid>
@@ -64,7 +70,15 @@ const ProductAdmin = ({ centralStock, onNavigate, onCreateProduct, onToggleVisib
             <Grid container spacing={3}>
                  {rawMaterials.map(p => (
                     <Grid item key={p.id} xs={12} sm={6} md={4} lg={3}>
-                        <Card><CardContent><Typography variant="h6">{p.name}</Typography><Typography color="text.secondary">{p.quantity} {p.unit}</Typography></CardContent><CardActions><Button size="small" onClick={() => onNavigate('productDetail', p.id)}>Szerkesztés / Adatlap</Button></CardActions></Card>
+                        <Card className="glass-card">
+                            <CardContent>
+                                <Typography variant="h6">{p.name}</Typography>
+                                <Typography className="MuiTypography-colorTextSecondary">{p.quantity} {p.unit}</Typography>
+                            </CardContent>
+                            <CardActions>
+                                <Button size="small" onClick={() => onNavigate('productDetail', p.id)}>Szerkesztés / Adatlap</Button>
+                            </CardActions>
+                        </Card>
                     </Grid>
                 ))}
             </Grid>
@@ -97,6 +111,7 @@ const UserAdmin = ({ allUsers, onCreateUser, onDeleteUser }) => {
                         <Select value={role} label="Szerepkör" onChange={e => setRole(e.target.value)}>
                             <MenuItem value="employee">Alkalmazott</MenuItem>
                             <MenuItem value="partner">Partner</MenuItem>
+                            <MenuItem value="manager">Manager</MenuItem>
                         </Select>
                     </FormControl>
                     <Button type="submit" variant="contained" sx={{ mt: 2 }}>Létrehozás</Button>
@@ -105,10 +120,12 @@ const UserAdmin = ({ allUsers, onCreateUser, onDeleteUser }) => {
             <Grid item xs={12} md={8}>
                 <Typography variant="h6" component="h3" gutterBottom>Jelenlegi Felhasználók</Typography>
                 <ul className="user-list">
-                    {allUsers.filter(u => u.role !== 'manager').map(u => (
+                    {allUsers.map(u => (
                         <li key={u.id}>
                             <span>{u.email} ({u.role})</span>
-                            <Button color="secondary" onClick={() => onDeleteUser(u.id)}>Törlés</Button>
+                            {u.role !== 'manager' && 
+                                <Button color="secondary" onClick={() => onDeleteUser(u.id)}>Törlés</Button>
+                            }
                         </li>
                     ))}
                 </ul>
@@ -150,6 +167,32 @@ const TaskAdmin = ({ allTasks, onCreateTask, onDeleteTask }) => {
     );
 };
 
+// --- Belső komponens a raktárkezeléshez ---
+const StockManagementAdmin = ({ onNavigate }) => {
+    return (
+        <Box>
+            <Typography variant="h5" component="h2" gutterBottom>Raktárkezelési Műveletek</Typography>
+            <Grid container spacing={3}>
+                <Grid item xs={12} sm={6} md={4}>
+                    <Button fullWidth variant="contained" size="large" onClick={() => onNavigate('bevetelezes')}>
+                        Új Bevételezés (Vonalkódos)
+                    </Button>
+                </Grid>
+                <Grid item xs={12} sm={6} md={4}>
+                    <Button fullWidth variant="contained" size="large" onClick={() => onNavigate('waste')}>
+                        Új Selejtezés
+                    </Button>
+                </Grid>
+                <Grid item xs={12} sm={6} md={4}>
+                    <Button fullWidth variant="contained" size="large" onClick={() => onNavigate('adjust-stock')}>
+                        Kézi Készletmódosítás
+                    </Button>
+                </Grid>
+            </Grid>
+        </Box>
+    );
+};
+
 // --- A Fő Komponens ---
 function AdminPage({ centralStock, allUsers, allTasks, onNavigate, onCreateProduct, onToggleVisibility, onCreateUser, onDeleteUser, onCreateTask, onDeleteTask }) {
     const [view, setView] = useState('products');
@@ -162,16 +205,18 @@ function AdminPage({ centralStock, allUsers, allTasks, onNavigate, onCreateProdu
             </header>
             <Container sx={{ py: 4 }}>
                 <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-                     <Grid container>
+                    <Grid container>
                         <Button variant={view === 'products' ? 'contained' : 'text'} onClick={() => setView('products')}>Termékek</Button>
                         <Button variant={view === 'users' ? 'contained' : 'text'} onClick={() => setView('users')}>Felhasználók</Button>
                         <Button variant={view === 'tasks' ? 'contained' : 'text'} onClick={() => setView('tasks')}>Napi Feladatok</Button>
+                        <Button variant={view === 'stock' ? 'contained' : 'text'} onClick={() => setView('stock')}>Raktárkezelés</Button>
                     </Grid>
                 </Box>
                 
                 {view === 'products' && <ProductAdmin centralStock={centralStock} onNavigate={onNavigate} onCreateProduct={onCreateProduct} onToggleVisibility={onToggleVisibility} />}
                 {view === 'users' && <UserAdmin allUsers={allUsers} onCreateUser={onCreateUser} onDeleteUser={onDeleteUser} />}
                 {view === 'tasks' && <TaskAdmin allTasks={allTasks} onCreateTask={onCreateTask} onDeleteTask={onDeleteTask} />}
+                {view === 'stock' && <StockManagementAdmin onNavigate={onNavigate} />}
             </Container>
         </div>
     );

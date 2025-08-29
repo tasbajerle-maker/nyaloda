@@ -16,25 +16,24 @@ exports.createOrder = async (req, res) => {
     try {
         const { orderItems, orderType, storeId } = req.body;
         
-        // Ellenőrizzük, hogy a orderItems egyáltalán létezik-e
         if (!orderItems || Object.keys(orderItems).length === 0) {
             return res.status(400).json({ message: "A rendelés nem tartalmazhat tételeket." });
         }
 
-        const userFromToken = await User.findById(req.user.userId);
+        // JAVÍTÁS: A felhasználót közvetlenül a req.user-ből vesszük, nem keresünk rá újra.
+        const userFromToken = req.user;
         if (!userFromToken) {
+            // Ez a hiba elvileg sosem fordulhat elő, ha a middleware lefutott.
             return res.status(404).json({ message: "A felhasználó nem található." });
         }
 
         const productIds = Object.keys(orderItems);
         let validProductObjectIds = [];
 
-        // HIBATŰRŐ ÁTALAKÍTÁS: Csak a valós ID-kat vesszük figyelembe
         for (const id of productIds) {
             if (mongoose.Types.ObjectId.isValid(id)) {
                 validProductObjectIds.push(new mongoose.Types.ObjectId(id));
             } else {
-                // Ha hibás ID-t találunk, naplózzuk és kihagyjuk, ahelyett, hogy összeomlanánk
                 console.warn(`Figyelmeztetés: Hibás termék ID a rendelésben, kihagyva: ${id}`);
             }
         }

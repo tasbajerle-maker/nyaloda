@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'http://192.168.0.28:5000';
 
 const getToken = () => localStorage.getItem('authToken');
 
@@ -31,35 +31,39 @@ async function request(endpoint, method = 'GET', body = null) {
 }
 
 // Auth
-export const login = (email, password) => request('/auth/login', 'POST', { email, password });
+export const login = (email, password) => request('/api/auth/login', 'POST', { email, password });
 
 // Data Fetching
-export const getAllData = () => request('/data');
+export const getAllData = () => request('/api/data');
 
 // Products
-export const createProduct = (productData) => request('/products', 'POST', productData);
-export const updateProduct = (productId, productData) => request(`/products/${productId}`, 'PATCH', productData);
+export const createProduct = (productData) => request('/api/products', 'POST', productData);
+export const updateProduct = (productId, productData) => request(`/api/products/${productId}`, 'PATCH', productData);
 
 // Orders
-export const createOrder = (orderData) => request('/orders', 'POST', orderData);
-export const approveOrder = (orderId) => request(`/orders/${orderId}/approve`, 'POST');
-export const rejectOrder = (orderId) => request(`/orders/${orderId}/reject`, 'POST');
+export const createOrder = (orderData) => request('/api/orders', 'POST', orderData);
+export const approveOrder = (orderId) => request(`/api/orders/${orderId}/approve`, 'POST');
+export const rejectOrder = (orderId) => request(`/api/orders/${orderId}/reject`, 'POST');
 
 // Stock
-export const receiveStoreOrder = (orderId) => request(`/stock/receive/${orderId}`, 'POST');
-export const moveToCounter = (moveData) => request('/stock/move-to-counter', 'POST', moveData);
-export const logUsage = (usageData) => request('/stock/log-usage', 'POST', usageData);
+export const receiveStoreOrder = (orderId) => request(`/api/stock/receive/${orderId}`, 'POST');
+export const moveToCounter = (moveData) => request('/api/stock/move-to-counter', 'POST', moveData);
+export const logUsage = (usageData) => request('/api/stock/log-usage', 'POST', usageData);
 
 // Users
-export const createUser = (userData) => request('/users', 'POST', userData);
-export const deleteUser = (userId) => request(`/users/${userId}`, 'DELETE');
+export const createUser = (userData) => request('/api/users', 'POST', userData);
+export const deleteUser = (userId) => request(`/api/users/${userId}`, 'DELETE');
 
 // Tasks
-export const createTask = (taskData) => request('/tasks', 'POST', taskData);
-export const deleteTask = (taskId) => request(`/tasks/${taskId}`, 'DELETE');
-export const logTask = (taskData) => request('/tasks/log', 'POST', taskData);
+export const createTask = (taskData) => request('/api/tasks', 'POST', taskData);
+export const deleteTask = (taskId) => request(`/api/tasks/${taskId}`, 'DELETE');
+export const logTask = (taskData) => request('/api/tasks/log', 'POST', taskData);
 
 // Stock Movement Functions
-export const receiveProductByBarcode = (data) => request('/products/receive-by-barcode', 'POST', data);
-export const wasteProduct = (data) => request('/products/waste', 'POST', data);
-export const adjustStock = (data) => request('/products/adjust-stock', 'POST', data);
+export const receiveProductByBarcode = (data) => request('/api/products/receive-by-barcode', 'POST', data);
+export const wasteProduct = (data) => request('/api/products/waste', 'POST', data);
+export const adjustStock = (data) => request('/api/products/adjust-stock', 'POST', data);
+export const logRawMaterialUsage = (data) => request('/api/stock/log-raw-material-usage', 'POST', data);
+export const useFromCounter = (data) => request('/api/stock/use-from-counter', 'POST', data);
+export const moveFromCounterToBack = (data) => request('/api/stock/move-from-counter-to-back', 'POST', data);
+// Az 'adjustCounterStock' funkció innen el lett távolítva.

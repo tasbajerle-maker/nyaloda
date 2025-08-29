@@ -19,7 +19,8 @@ import ReportsPage from './components/ReportsPage';
 import ProductDetailPage from './components/ProductDetailPage';
 import Bevetelezes from './components/Bevetelezes';
 import Selejtezes from './components/Selejtezes';
-import StockAdjustment from './components/StockAdjustment'; // <-- ÚJ IMPORT
+import StockAdjustment from './components/StockAdjustment';
+import UsagePage from './components/UsagePage';
 
 function App() {
     const [user, setUser] = useState(null);
@@ -33,6 +34,7 @@ function App() {
     const [taskLog, setTaskLog] = useState([]);
     const [usageLog, setUsageLog] = useState([]);
     const [allUsers, setAllUsers] = useState([]);
+    const [stockMovements, setStockMovements] = useState([]);
     const [partnerPage, setPartnerPage] = useState('dashboard');
     const [currentStoreId, setCurrentStoreId] = useState(null);
 
@@ -46,6 +48,7 @@ function App() {
             setTaskLog(data.taskLog || []);
             setAllUsers(data.allUsers || []);
             setUsageLog(data.usageLog || []);
+            setStockMovements(data.stockMovements || []);
         } catch (error) {
             console.error("Adatlekérési hiba:", error);
             handleLogout();
@@ -200,22 +203,85 @@ function App() {
             throw error;
         }
     };
+    
+    const handleLogRawMaterialUsage = async (usageData, storeId) => {
+        try {
+            const itemsToLog = Object.entries(usageData)
+                .filter(([, qty]) => Number(qty) > 0)
+                .map(([productId, quantity]) => ({ productId, quantity: Number(quantity) }));
+
+            if (itemsToLog.length === 0) {
+                return alert("Nincs megadva fogyás.");
+            }
+            
+            await api.logRawMaterialUsage({ items: itemsToLog, storeId: storeId });
+            alert('Fogyás sikeresen rögzítve.');
+            await fetchData();
+            handleNavigate('dashboard');
+        } catch (error) {
+            alert(`Hiba a fogyás rögzítésekor: ${error.message}`);
+        }
+    };
+
+    const handleMoveToCounter = async (productId, quantity, storeId) => {
+        try {
+            const moveData = {
+                items: { [productId]: quantity },
+                storeId: storeId
+            };
+            await api.moveToCounter(moveData);
+            alert('Termék sikeresen áthelyezve a pultba.');
+            await fetchData();
+        } catch (error) {
+            alert(`Hiba az áthelyezéskor: ${error.message}`);
+        }
+    };
+
+    const handleUseFromCounter = async (storeStockId) => {
+        try {
+            await api.useFromCounter({ storeStockId });
+            await fetchData();
+        } catch (error) {
+            alert(`Hiba a felhasználás naplózásakor: ${error.message}`);
+        }
+    };
+
+    const handleMoveFromCounterToBack = async (storeStockId, quantity) => {
+        try {
+            await api.moveFromCounterToBack({ storeStockId, quantity });
+            await fetchData();
+        } catch (error) {
+            alert(`Hiba a visszaküldéskor: ${error.message}`);
+        }
+    };
+
+    const handleCreateUser = async (userData) => {
+        try {
+            await api.createUser(userData);
+            alert('Felhasználó sikeresen létrehozva!');
+            await fetchData();
+        } catch (error) {
+            alert(`Hiba a felhasználó létrehozásakor: ${error.message}`);
+        }
+    };
+
+    // EZ AZ ÚJ FUNKCIÓ
+    const handleLogUsage = async (usageData, storeId) => {
+        try {
+            await api.logUsage({ items: usageData, storeId: storeId });
+            alert('Fogyás sikeresen rögzítve.');
+            await fetchData();
+        } catch (error) {
+            alert(`Hiba a fogyás rögzítésekor: ${error.message}`);
+        }
+    };
 
     const renderEmployeeUI = () => {
         if (page === 'dashboard' && user.role === 'manager') {
             return (
                 <>
-                    <Dashboard user={user} onNavigate={handleNavigate} onLogout={handleLogout} currentStoreId={currentStoreId} onStoreChange={handleStoreChange} />
-                    <main style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center' }}>
-                        <button onClick={() => handleNavigate('bevetelezes')} style={{ padding: '10px', fontSize: '16px' }}>
-                            Új Bevételezés (Vonalkódos)
-                        </button>
-                        <button onClick={() => handleNavigate('waste')} style={{ padding: '10px', fontSize: '16px' }}>
-                            Új Selejtezés
-                        </button>
-                        <button onClick={() => handleNavigate('adjust-stock')} style={{ padding: '10px', fontSize: '16px' }}>
-                            Kézi Készletmódosítás
-                        </button>
+                    <Dashboard user={user} allOrders={allOrders} onNavigate={handleNavigate} onLogout={handleLogout} currentStoreId={currentStoreId} onStoreChange={handleStoreChange} onReceiveOrder={handleReceiveOrder} />
+                    <main style={{ padding: '2rem' }}>
                         <ManagerDashboardView 
                             allOrders={allOrders}
                             centralStock={centralStock}
@@ -228,9 +294,18 @@ function App() {
 
         switch (page) {
             case 'stores': return <StoreSelectorPage onNavigate={handleNavigate} />;
-            case 'stock': return <StockPage storeId={pageParams} storeStock={storeStock} onNavigate={handleNavigate} />;
+            case 'stock': 
+                return <StockPage 
+                            storeId={pageParams} 
+                            storeStock={storeStock} 
+                            onNavigate={handleNavigate}
+                            onMoveToCounter={(productId, qty) => handleMoveToCounter(productId, qty, pageParams)}
+                            onUseFromCounter={handleUseFromCounter}
+                            onMoveFromCounterToBack={handleMoveFromCounterToBack}
+                            onLogUsage={handleLogUsage} // EZ AZ ÚJ PROP
+                        />;
             case 'order': return <OrderPage centralStock={centralStock} onNavigate={handleNavigate} onSubmitOrder={handleCreateOrder} />;
-            case 'orderAdmin': return <OrderAdminPage allOrders={allOrders} centralStock={centralStock} onNavigate={handleNavigate} onApproveOrder={handleApproveOrder} onReceiveOrder={handleReceiveOrder} />;
+            case 'orderAdmin': return <OrderAdminPage allOrders={allOrders} centralStock={centralStock} onNavigate={handleNavigate} onApproveOrder={handleApproveOrder} onReceiveOrder={handleReceiveOrder} onRejectOrder={api.rejectOrder} />;
             case 'admin': 
                 return <AdminPage 
                             centralStock={centralStock} 
@@ -239,58 +314,38 @@ function App() {
                             onNavigate={handleNavigate} 
                             onCreateProduct={handleCreateProduct}
                             onToggleVisibility={handleToggleVisibility}
+                            onCreateUser={handleCreateUser}
+                            onDeleteUser={api.deleteUser}
+                            onCreateTask={api.createTask}
+                            onDeleteTask={api.deleteTask}
                         />;
-            case 'checklist': 
-                return <DailyChecklistPage 
-                            tasks={allTasks} 
-                            taskLog={taskLog} 
-                            onToggleTask={handleToggleTask} 
-                            onNavigate={handleNavigate}
-                        />;
-            case 'reports':
-                return <ReportsPage
-                            usageLog={usageLog}
-                            taskLog={taskLog}
-                            allTasks={allTasks}
-                            onNavigate={handleNavigate}
+            case 'checklist': return <DailyChecklistPage tasks={allTasks} taskLog={taskLog} onToggleTask={handleToggleTask} onNavigate={handleNavigate} />;
+            case 'reports': 
+                return <ReportsPage 
+                            stockMovements={stockMovements}
+                            allUsers={allUsers}
+                            centralStock={centralStock}
+                            onNavigate={handleNavigate} 
                         />;
             case 'productDetail': {
                 const productToEdit = centralStock.find(p => p.id === pageParams);
-                return <ProductDetailPage 
-                            product={productToEdit} 
-                            onNavigate={handleNavigate} 
-                            onUpdateProduct={handleUpdateProduct} 
-                        />;
+                return <ProductDetailPage product={productToEdit} onNavigate={handleNavigate} onUpdateProduct={handleUpdateProduct} />;
             }
             case 'bevetelezes': {
-                return <Bevetelezes 
-                            onSubmit={handleStockReceive} 
-                            onNavigate={handleNavigate} 
-                        />;
+                return <Bevetelezes onSubmit={handleStockReceive} onNavigate={handleNavigate} />;
             }
             case 'waste': {
-                return <Selejtezes 
-                            centralStock={centralStock}
-                            onSubmit={handleWasteProduct} 
-                            onNavigate={handleNavigate} 
-                        />;
+                return <Selejtezes centralStock={centralStock} onSubmit={handleWasteProduct} onNavigate={handleNavigate} />;
             }
             case 'adjust-stock': {
-                return <StockAdjustment 
-                            centralStock={centralStock}
-                            onSubmit={handleStockAdjustment} 
-                            onNavigate={handleNavigate} 
-                        />;
+                return <StockAdjustment centralStock={centralStock} onSubmit={handleStockAdjustment} onNavigate={handleNavigate} />;
+            }
+            case 'usage': {
+                return <UsagePage centralStock={centralStock} storeId={currentStoreId} onSubmitUsage={handleLogRawMaterialUsage} onNavigate={handleNavigate} />;
             }
             case 'dashboard': 
             default: 
-                return <Dashboard 
-                            user={user} 
-                            onNavigate={handleNavigate} 
-                            onLogout={handleLogout} 
-                            currentStoreId={currentStoreId}
-                            onStoreChange={handleStoreChange}
-                        />;
+                return <Dashboard user={user} allOrders={allOrders} onNavigate={handleNavigate} onLogout={handleLogout} currentStoreId={currentStoreId} onStoreChange={handleStoreChange} onReceiveOrder={handleReceiveOrder} />;
         }
     };
 
@@ -306,11 +361,11 @@ function App() {
         return <LoginPage onLogin={handleLogin} errorMessage={errorMessage} />;
     }
 
-    return (
-        <div>
-            {user.role === 'partner' ? renderPartnerUI() : renderEmployeeUI()}
-        </div>
-    );
+   return (
+     <div className="App">
+         {user.role === 'partner' ? renderPartnerUI() : renderEmployeeUI()}
+     </div>
+   );
 }
 
 export default App;

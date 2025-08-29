@@ -1,36 +1,34 @@
-// Fájl: backend/models/stockMovementModel.js
-
 const mongoose = require('mongoose');
 
 const stockMovementSchema = new mongoose.Schema({
   product: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
-    ref: 'Product' // Hivatkozás a 'Product' modellre
+    ref: 'Product'
   },
   user: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
-    ref: 'User' // Hivatkozás a 'User' modellre
+    ref: 'User'
   },
   store: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Store' // Hivatkozás a 'Store' modellre
+    type: String, // JAVÍTVA: Elfogadja a bolt nevét, pl. 'nyirpalota'
+    required: true
   },
   type: {
     type: String,
     required: true,
-    enum: ['RECEIVE', 'WASTE', 'SALE', 'TRANSFER_OUT', 'TRANSFER_IN', 'ADJUSTMENT']
+    enum: ['RECEIVE', 'WASTE', 'SALE', 'TRANSFER_OUT', 'TRANSFER_IN', 'ADJUSTMENT', 'USAGE']
   },
   quantity: {
     type: Number,
-    required: true // Pozitív vagy negatív szám
+    required: true
   },
   notes: {
     type: String
   }
 }, {
-  timestamps: true // Automatikusan hozzáadja a created_at és updated_at mezőket
+  timestamps: true
 });
 
 const StockMovement = mongoose.model('StockMovement', stockMovementSchema);
